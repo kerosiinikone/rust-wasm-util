@@ -1,4 +1,4 @@
-use std::{convert::TryInto, fmt, num};
+use std::{convert::TryInto, fmt};
 
 use wasm_bindgen::prelude::*;
 use rand::Rng;
