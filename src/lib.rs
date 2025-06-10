@@ -6,9 +6,33 @@ use wasm_bindgen::prelude::*;
 use rand::Rng;
 
 #[wasm_bindgen]
+pub enum MatrixType {
+    Four
+}
+
+pub trait Matrix {
+    fn mtype(&self) -> &MatrixType;
+    fn into_matrix4(&self) -> Matrix4 {
+        Matrix4 {
+            matrix: [[0; 4]; 4],
+            _len: 16,
+            _type: MatrixType::Four
+        }
+    }
+   fn multiply(&self, m2: &Matrix4) -> Result<Matrix4, Box<(dyn Error)>> {
+        match self.mtype() {
+            MatrixType::Four => {
+                Matrix4::multiply4(&self.into_matrix4(), m2)
+            }
+        }
+   }
+}
+
+#[wasm_bindgen]
 pub struct Matrix4 {
     matrix: [[u32; 4]; 4],
-    _len: usize
+    _len: usize,
+    _type: MatrixType
 }
 
 #[wasm_bindgen]
@@ -17,7 +41,8 @@ impl Matrix4 {
     fn new() -> Self {
         Matrix4 {
             matrix: [[0; 4]; 4],
-            _len: 16
+            _len: 16,
+            _type: MatrixType::Four
         }
     }
 
@@ -26,7 +51,7 @@ impl Matrix4 {
     }
     
     /// Naive multiplication -> just trying to learn the Rust concepts
-    fn _multiply4(m1: &Matrix4, m2: &Matrix4) -> Result<Matrix4, Box<(dyn Error)>> {
+    fn multiply4(m1: &Matrix4, m2: &Matrix4) -> Result<Matrix4, Box<(dyn Error)>> {
         if m1._len != m2.matrix[0].len() {
             // Not of equal length
             return Err("m1 and m2 not of equal length".into());
@@ -36,7 +61,6 @@ impl Matrix4 {
 
         let r1 = m1.matrix.len();
         let c1 = m1.matrix[0].len();
-        let r2 = m2.matrix.len();
         let c2 = m2.matrix[0].len();
 
         for i in 0..r1 {
@@ -62,6 +86,16 @@ impl fmt::Display for Matrix4 {
         }
         Ok(())
     }
+}
+
+impl Matrix for Matrix4 {
+   fn multiply(&self, m2: &Matrix4) -> Result<Matrix4, Box<(dyn Error)>> {
+        Ok(Matrix4::multiply4(self, m2)?)
+   }
+   fn mtype(&self) -> &MatrixType {
+       &self._type
+   }
+
 }
 
 #[wasm_bindgen]
